@@ -1,0 +1,117 @@
+---
+title: "Quickstart"
+description: "Tu primera llamada al gateway en menos de 5 minutos"
+---
+
+## 1 · Crea tu cuenta
+
+Ve a [app.geekhub.mx/signup](https://app.geekhub.mx/signup) y regístrate. Te damos **$50 MXN de crédito gratis** para que pruebes — sin tarjeta, sin compromisos.
+
+## 2 · Genera tu API key
+
+En el dashboard, ve a **API Keys → Nueva API key**.
+
+<Warning>
+  La key se muestra **una sola vez**. Cópiala a tu password manager antes de cerrar el modal.
+</Warning>
+
+El formato es:
+
+```
+ghub_sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+## 3 · Tu primera llamada
+
+<CodeGroup>
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.geekhub.mx/v1",
+    api_key="ghub_sk_live_TU_KEY",
+)
+
+response = client.chat.completions.create(
+    model="anthropic/claude-haiku-4-5",
+    messages=[{"role": "user", "content": "Hola, en una sola línea"}],
+)
+
+print(response.choices[0].message.content)
+```
+
+```javascript Node.js
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.geekhub.mx/v1",
+  apiKey: "ghub_sk_live_TU_KEY",
+});
+
+const response = await client.chat.completions.create({
+  model: "anthropic/claude-haiku-4-5",
+  messages: [{ role: "user", content: "Hola, en una sola línea" }],
+});
+
+console.log(response.choices[0].message.content);
+```
+
+```bash curl
+curl -X POST https://api.geekhub.mx/v1/chat/completions \
+  -H "Authorization: Bearer ghub_sk_live_TU_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "anthropic/claude-haiku-4-5",
+    "messages": [{"role":"user","content":"Hola, en una sola línea"}]
+  }'
+```
+
+</CodeGroup>
+
+Respuesta:
+
+```json
+{
+  "id": "req_xxx",
+  "object": "chat.completion",
+  "model": "anthropic/claude-haiku-4-5",
+  "choices": [{
+    "index": 0,
+    "message": {"role":"assistant","content":"¡Hola! ¿En qué puedo ayudarte?"},
+    "finish_reason": "stop"
+  }],
+  "usage": {"prompt_tokens": 10, "completion_tokens": 8, "total_tokens": 18}
+}
+```
+
+## 4 · Cambia de modelo
+
+Solo cambia el campo `model`. **El mismo SDK** funciona con todos:
+
+```python
+# OpenAI GPT-5
+model="openai/gpt-5"
+
+# Google Gemini Flash
+model="google/gemini-2.5-flash"
+
+# DeepSeek Reasoner
+model="deepseek/deepseek-reasoner"
+
+# Kimi K2
+model="moonshot/kimi-k2"
+
+# Grok 4
+model="xai/grok-4"
+```
+
+Ver el [catálogo completo](/models) con precios y capacidades.
+
+## 5 · Cuando se acabe el bono
+
+Recarga desde [app.geekhub.mx/dashboard/billing](https://app.geekhub.mx/dashboard/billing). Aceptamos tarjeta vía Stripe; al cierre del cobro te llega tu **CFDI 4.0** automático a tu RFC.
+
+<Card title="¿Sin RFC?" icon="receipt" href="/concepts/billing">
+  Tu CFDI se emite a Público en General (XAXX010101000). No te bloqueamos para recargar.
+</Card>

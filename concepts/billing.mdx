@@ -1,0 +1,103 @@
+---
+title: "Facturación y CFDI"
+description: "Cómo cobramos, cómo facturamos, cuánto cuesta cada modelo"
+---
+
+## Modelo de cobro
+
+**Pay-as-you-go**, sin mínimos, sin suscripción. Pagas por lo que consumes.
+
+```
+Costo final = (precio del proveedor × tokens / 1M) × 1.05 × tipo_de_cambio_MXN
+```
+
+- **+5% de markup** de Geek Hub
+- **Tipo de cambio fijo mensual** — sin sorpresas de FX
+- **Sin cargos por requests fallidos** (4xx, 5xx no cobran)
+
+### Ejemplo
+
+Llamada a `anthropic/claude-haiku-4-5` con 100 input tokens + 500 output tokens:
+
+```
+Provider:  (100 × $1 / 1M) + (500 × $5 / 1M) = $0.0026 USD
++ 5% markup:                                    $0.00273 USD
+× FX 20 MXN/USD:                                $0.0546 MXN
+```
+
+## Recargas y saldo
+
+Cargas saldo en MXN desde el [dashboard](https://app.geekhub.mx/dashboard/billing/recharge). Acepta:
+
+- Tarjeta de crédito/débito (vía Stripe)
+- _Próximo:_ OXXO, transferencia SPEI, PayPal
+
+Cada llamada exitosa **descuenta su costo en MXN del saldo** atómicamente. Cuando llega a $0:
+
+```json
+HTTP 402 Payment Required
+
+{
+  "error": {
+    "message": "Insufficient balance. Recharge at https://app.geekhub.mx/dashboard/billing.",
+    "type": "insufficient_balance",
+    "code": "insufficient_balance"
+  }
+}
+```
+
+## CFDI 4.0 automático
+
+Cada recarga genera tu **CFDI 4.0 timbrado por SAT** en cuanto Stripe confirma el cobro (~5 seg).
+
+### Si das de alta tus datos fiscales
+
+El CFDI sale a tu **RFC** con razón social, régimen y uso CFDI configurados en [Ajustes](https://app.geekhub.mx/dashboard/settings).
+
+| Dato | Cómo lo usamos |
+|------|----------------|
+| RFC | Receptor del CFDI |
+| Razón social (en MAYÚSCULAS) | Receptor.Nombre |
+| Código postal | Domicilio fiscal del receptor |
+| Régimen fiscal | RegimenFiscalReceptor (601, 612, 626, etc) |
+| Uso CFDI | UsoCfdi (G03, S01, I04, etc) |
+| Email facturación | Dirección donde llega el XML+PDF |
+
+### Si no das de alta tus datos fiscales
+
+El CFDI se emite a **Público en General** (RFC `XAXX010101000`, Uso `S01`).
+
+<Info>
+  Esto es 100% válido legalmente — es como te factura OXXO, Uber o Rappi cuando no pides ticket fiscal. Si después quieres CFDI a tu RFC, las **siguientes** recargas ya saldrán correctas (las pasadas no se pueden modificar).
+</Info>
+
+### Descarga de tus CFDIs
+
+En [Facturación → Facturas (CFDI 4.0)](https://app.geekhub.mx/dashboard/billing) tienes:
+
+- **Folio** (interno, secuencial por org)
+- **UUID SAT** (el folio fiscal oficial)
+- **Total MXN** (subtotal + IVA 16%)
+- **Estado** (Timbrada / Cancelada / Error)
+- **Descargar XML** — link directo al XML timbrado
+
+## Catálogo de precios
+
+Ver [Modelos](/models) para precios completos por modelo. Resumen aproximado:
+
+| Familia | Input $/1M | Output $/1M |
+|---------|------------|-------------|
+| Claude Haiku | $1.05 | $5.25 |
+| Claude Sonnet | $3.15 | $15.75 |
+| Claude Opus | $15.75 | $78.75 |
+| GPT-5 | $1.31 | $10.50 |
+| Gemini 2.5 Flash | $0.16 | $0.63 |
+| DeepSeek | $0.28 | $1.15 |
+| Kimi K2 | $0.63 | $2.62 |
+| Grok 3 mini | $0.32 | $0.52 |
+
+_Precios en USD ya con el +5% de markup. Multiplica por tu FX para MXN._
+
+<Card title="Imágenes y video" icon="image" href="/api-reference/images/overview">
+  Las imágenes se cobran por unidad ($0.04 – $0.19 USD); el video, por segundo ($0.04 – $0.40 USD).
+</Card>

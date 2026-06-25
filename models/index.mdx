@@ -1,0 +1,72 @@
+---
+title: "Catálogo de modelos"
+description: "33 modelos en 7 providers · chat, imágenes y video"
+---
+
+Geek Hub expone **33 modelos** de los providers más relevantes de la industria, todos con la misma API y el mismo método de pago.
+
+<CardGroup cols={3}>
+  <Card title="Chat" icon="message" href="/models/chat">
+    17 modelos para conversación y razonamiento
+  </Card>
+  <Card title="Imágenes" icon="image" href="/models/images">
+    9 modelos para generación de imágenes
+  </Card>
+  <Card title="Video" icon="video" href="/models/videos">
+    7 modelos para generación de video
+  </Card>
+</CardGroup>
+
+## Naming convention
+
+Todos los modelos siguen el formato `<provider>/<model-slug>`:
+
+- `anthropic/claude-sonnet-4-6`
+- `openai/gpt-5`
+- `google/gemini-2.5-pro`
+- `fal/flux-1.1-pro`
+- `xai/grok-4`
+
+El namespace deja claro qué proveedor está detrás y te permite cambiar entre alternativas con solo cambiar 1 string.
+
+## API live de modelos
+
+Para obtener la lista actualizada al momento, llama:
+
+```bash
+curl https://api.geekhub.mx/v1/models \
+  -H "Authorization: Bearer ghub_sk_live_xxx"
+```
+
+Te devuelve algo como:
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "anthropic/claude-sonnet-4-6",
+      "object": "model",
+      "kind": "chat",
+      "owned_by": "anthropic",
+      "context_length": 200000,
+      "pricing": {
+        "input_per_1m_usd": 3,
+        "output_per_1m_usd": 15
+      }
+    },
+    ...
+  ]
+}
+```
+
+## Pricing
+
+Los precios listados son **USD del proveedor original**. Para el costo final:
+
+```
+costo_final_mxn = precio_provider × (1 + 0.05) × FX_MXN_USD
+```
+
+- `+5%` markup de Geek Hub
+- `FX_MXN_USD` se fija mensualmente y se anuncia a clientes (sin sorpresas)

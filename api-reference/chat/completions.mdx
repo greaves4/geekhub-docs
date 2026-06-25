@@ -1,0 +1,191 @@
+---
+title: "POST /v1/chat/completions"
+description: "Generación de respuestas de chat con cualquier modelo"
+api: "POST https://api.geekhub.mx/v1/chat/completions"
+---
+
+## Request body
+
+<ParamField body="model" type="string" required>
+  El ID namespaced del modelo, ej. `anthropic/claude-sonnet-4-6`. Ver [Modelos chat](/models/chat).
+</ParamField>
+
+<ParamField body="messages" type="array" required>
+  Array de mensajes en la conversación.
+
+  <Expandable title="Estructura de cada mensaje">
+    <ParamField body="role" type="'system' | 'user' | 'assistant' | 'tool'" required>
+      Rol del mensaje. `system` define el comportamiento, `user` es el humano, `assistant` es el modelo.
+    </ParamField>
+    <ParamField body="content" type="string" required>
+      Contenido del mensaje.
+    </ParamField>
+    <ParamField body="name" type="string">
+      Identificador opcional del speaker.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="temperature" type="number" default="varía por modelo">
+  Entre 0 y 2. Más alto = más creativo, más bajo = más determinista.
+</ParamField>
+
+<ParamField body="top_p" type="number">
+  Entre 0 y 1. Nucleus sampling. Alternativa a `temperature`.
+</ParamField>
+
+<ParamField body="max_tokens" type="integer">
+  Máximo de tokens a generar. Default varía por modelo.
+</ParamField>
+
+<ParamField body="stream" type="boolean" default="false">
+  Si `true`, responde con Server-Sent Events. Ver sección Streaming abajo.
+</ParamField>
+
+<ParamField body="stop" type="string | string[]">
+  Sequencias que terminan la generación.
+</ParamField>
+
+## Response (non-streaming)
+
+<ResponseField name="id" type="string">
+  Tu `request_id` (formato `req_<24hex>`). Útil para tracing.
+</ResponseField>
+
+<ResponseField name="object" type="string">
+  Siempre `"chat.completion"`.
+</ResponseField>
+
+<ResponseField name="created" type="integer">
+  Unix timestamp.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  El model id namespaced (e.g. `anthropic/claude-sonnet-4-6`).
+</ResponseField>
+
+<ResponseField name="choices" type="array">
+  Array con un solo elemento (no soportamos `n > 1` todavía).
+
+  <Expandable title="choice">
+    <ResponseField name="index" type="integer">0</ResponseField>
+    <ResponseField name="message.role" type="string">`assistant`</ResponseField>
+    <ResponseField name="message.content" type="string">Texto generado</ResponseField>
+    <ResponseField name="finish_reason" type="string">
+      `stop` | `length` | `content_filter` | `tool_calls`
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="usage" type="object">
+  Tokens consumidos. Se cobran al cierre.
+
+  <Expandable title="usage">
+    <ResponseField name="prompt_tokens" type="integer" />
+    <ResponseField name="completion_tokens" type="integer" />
+    <ResponseField name="total_tokens" type="integer" />
+  </Expandable>
+</ResponseField>
+
+## Streaming
+
+Para responses en tiempo real, manda `"stream": true`. Recibirás Server-Sent Events:
+
+```
+data: {"id":"req_xxx","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}]}
+
+data: {"id":"req_xxx","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"Hola"},"finish_reason":null}]}
+
+data: {"id":"req_xxx","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":" mundo"},"finish_reason":null}]}
+
+data: {"id":"req_xxx","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+
+data: [DONE]
+```
+
+Cada `data:` es un JSON con un `delta.content` que es **el siguiente fragmento** del texto (puede ser una palabra, una sílaba, hasta un solo caracter).
+
+### Parser TypeScript
+
+```typescript
+const res = await fetch("https://api.geekhub.mx/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.GEEKHUB_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "anthropic/claude-haiku-4-5",
+    messages: [{ role: "user", content: "Cuenta hasta 5" }],
+    stream: true,
+  }),
+});
+
+const reader = res.body!.getReader();
+const decoder = new TextDecoder();
+let buffer = "";
+
+while (true) {
+  const { value, done } = await reader.read();
+  if (done) break;
+  buffer += decoder.decode(value, { stream: true });
+
+  let nl: number;
+  while ((nl = buffer.indexOf("\n\n")) !== -1) {
+    const block = buffer.slice(0, nl);
+    buffer = buffer.slice(nl + 2);
+    const data = block.split("\n").find(l => l.startsWith("data:"))?.slice(5).trim();
+    if (!data || data === "[DONE]") continue;
+    const chunk = JSON.parse(data);
+    process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+  }
+}
+```
+
+## Ejemplos por proveedor
+
+<CodeGroup>
+
+```python Claude Sonnet 4.6
+response = client.chat.completions.create(
+    model="anthropic/claude-sonnet-4-6",
+    messages=[
+        {"role": "system", "content": "Eres un asistente conciso."},
+        {"role": "user", "content": "¿Capital de México?"}
+    ],
+    max_tokens=200,
+)
+```
+
+```python GPT-5
+response = client.chat.completions.create(
+    model="openai/gpt-5",
+    messages=[{"role": "user", "content": "Explica QPS en una línea"}],
+)
+```
+
+```python Gemini 2.5 Pro
+response = client.chat.completions.create(
+    model="google/gemini-2.5-pro",
+    messages=[{"role": "user", "content": "Hola"}],
+    temperature=0.5,
+)
+```
+
+```python DeepSeek Reasoner
+response = client.chat.completions.create(
+    model="deepseek/deepseek-reasoner",
+    messages=[{"role": "user", "content": "Resuelve: 23 * 17 paso a paso"}],
+)
+```
+
+</CodeGroup>
+
+## Errores comunes
+
+Ver [Errores](/concepts/errors) para el catálogo completo. Los más frecuentes en chat:
+
+- `400 invalid_request_error` — body mal formado (Zod te dice el campo en `message`)
+- `402 insufficient_balance` — sin saldo
+- `404 model_not_found` — model id inválido (probablemente le faltó namespace)
+- `502 provider_unavailable` — el provider rebotó (a veces es prompt rechazado)

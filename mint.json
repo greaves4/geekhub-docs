@@ -1,0 +1,106 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Geek Hub",
+  "logo": {
+    "light": "/logo-light.svg",
+    "dark": "/logo-dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#D982F2",
+    "light": "#E699F5",
+    "dark": "#2A1638",
+    "anchors": {
+      "from": "#D982F2",
+      "to": "#A85ABE"
+    },
+    "background": {
+      "light": "#F6F2F8",
+      "dark": "#150921"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Dashboard",
+      "url": "https://app.geekhub.mx"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Crear cuenta",
+    "url": "https://app.geekhub.mx/signup"
+  },
+  "anchors": [
+    {
+      "name": "API Reference",
+      "icon": "code",
+      "url": "api-reference"
+    },
+    {
+      "name": "Modelos",
+      "icon": "sparkles",
+      "url": "models"
+    },
+    {
+      "name": "Soporte",
+      "icon": "life-ring",
+      "url": "https://app.geekhub.mx/support"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Empezar",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "authentication"
+      ]
+    },
+    {
+      "group": "Conceptos",
+      "pages": [
+        "concepts/billing",
+        "concepts/balance",
+        "concepts/errors"
+      ]
+    },
+    {
+      "group": "Chat",
+      "pages": [
+        "api-reference/chat/overview",
+        "api-reference/chat/completions"
+      ]
+    },
+    {
+      "group": "Imágenes",
+      "pages": [
+        "api-reference/images/overview",
+        "api-reference/images/generations"
+      ]
+    },
+    {
+      "group": "Video",
+      "pages": [
+        "api-reference/videos/overview",
+        "api-reference/videos/generations",
+        "api-reference/videos/poll"
+      ]
+    },
+    {
+      "group": "Catálogo",
+      "pages": [
+        "models/index",
+        "models/chat",
+        "models/images",
+        "models/videos"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/greaves4",
+    "x": "https://x.com/geekvibes"
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true
+  }
+}

@@ -1,0 +1,130 @@
+---
+title: "POST /v1/images/generations"
+description: "Generación de imágenes con cualquier modelo del catálogo"
+api: "POST https://api.geekhub.mx/v1/images/generations"
+---
+
+## Request body
+
+<ParamField body="model" type="string" required>
+  El ID namespaced del modelo, ej. `fal/flux-1.1-pro`.
+</ParamField>
+
+<ParamField body="prompt" type="string" required>
+  Descripción de la imagen. Máximo 4000 caracteres.
+</ParamField>
+
+<ParamField body="n" type="integer" default="1">
+  Número de imágenes a generar (1–8). Cada imagen cobra independiente.
+</ParamField>
+
+<ParamField body="size" type="string">
+  Tamaño deseado. Lo soportado depende del modelo:
+  - OpenAI gpt-image-1: `1024x1024`, `1536x1024`, `1024x1536`
+  - OpenAI dall-e-3: `1024x1024`, `1792x1024`, `1024x1792`
+  - fal/Recraft/Ideogram: `1024x1024`, `1024x768`, `768x1024`, etc.
+</ParamField>
+
+<ParamField body="quality" type="string">
+  `standard` | `hd` para OpenAI. Otros modelos lo ignoran.
+</ParamField>
+
+## Response
+
+```json
+{
+  "id": "req_xxx",
+  "object": "list",
+  "created": 1782412958,
+  "model": "fal/flux-1.1-pro",
+  "data": [
+    {
+      "url": "https://supabase.geekhub.mx/storage/v1/object/public/generated-images/<org>/<req>/0.jpg"
+    }
+  ]
+}
+```
+
+<Info>
+  La URL es **nuestra** (Supabase Storage), no la del proveedor. Es persistente y no expira. Mismo modelo de seguridad que fal.media, Cloudinary o S3 unsigned: la URL incluye 2 UUIDs (`org_id` + `request_id`) que la hacen imposible de adivinar.
+</Info>
+
+## Ejemplos
+
+<CodeGroup>
+
+```python Flux 1.1 Pro
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.geekhub.mx/v1",
+    api_key="ghub_sk_live_xxx",
+)
+
+response = client.images.generate(
+    model="fal/flux-1.1-pro",
+    prompt="Un astronauta meditando en una nube de tacos al pastor, estilo cinematográfico",
+    n=1,
+    size="1024x1024",
+)
+
+print(response.data[0].url)
+```
+
+```python GPT Image 1
+response = client.images.generate(
+    model="openai/gpt-image-1",
+    prompt="Un astronauta meditando en una nube de tacos al pastor",
+    n=1,
+    size="1024x1024",
+    quality="hd",
+)
+```
+
+```python Imagen 4
+response = client.images.generate(
+    model="google/imagen-4",
+    prompt="Un astronauta meditando en una nube de tacos al pastor",
+    n=1,
+)
+```
+
+```bash curl
+curl -X POST https://api.geekhub.mx/v1/images/generations \
+  -H "Authorization: Bearer ghub_sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "fal/flux-1.1-pro",
+    "prompt": "Un astronauta meditando en una nube de tacos al pastor",
+    "n": 1,
+    "size": "1024x1024"
+  }'
+```
+
+</CodeGroup>
+
+## Latencia esperada
+
+| Modelo | P50 | P95 |
+|--------|-----|-----|
+| DALL·E 3 | 8s | 20s |
+| GPT Image 1 | 15s | 45s |
+| Imagen 4 | 6s | 18s |
+| Grok 2 Image | 10s | 30s |
+| Flux 1.1 Pro | 7s | 25s |
+| Flux 1.1 Pro Ultra | 12s | 40s |
+| Recraft V3 | 8s | 28s |
+| Ideogram V2 | 12s | 35s |
+| SD 3.5 Large | 10s | 30s |
+
+Si tu request tarda > 60s, asume que falló — manda otro.
+
+## Costos
+
+Cada imagen se cobra al precio del modelo × 1.05 (markup) × FX MXN/USD. Ver [Modelos imágenes](/models/images).
+
+Ejemplo: 1 imagen con Flux 1.1 Pro al FX de $20 MXN/USD:
+
+```
+$0.040 × 1.05 × 20 = $0.84 MXN por imagen
+```

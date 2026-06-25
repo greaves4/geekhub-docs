@@ -1,0 +1,57 @@
+---
+title: "Modelos de chat"
+description: "17 modelos para conversación y razonamiento"
+---
+
+| ID | Provider | Context | Input $/1M | Output $/1M | Best for |
+|----|----------|---------|-----------|------------|----------|
+| `anthropic/claude-opus-4-8` | Anthropic | 200k | $15 | $75 | Razonamiento profundo, código complejo |
+| `anthropic/claude-sonnet-4-6` | Anthropic | 200k | $3 | $15 | Sweet spot precio/calidad |
+| `anthropic/claude-haiku-4-5` | Anthropic | 200k | $1 | $5 | Tareas simples, alto volumen |
+| `google/gemini-2.5-pro` | Google | 1M | $1.25 | $5 | Context largo, multimodal |
+| `google/gemini-2.5-flash` | Google | 1M | $0.15 | $0.60 | Más barato del catálogo |
+| `openai/gpt-5` | OpenAI | 400k | $1.25 | $10 | Razonamiento general |
+| `openai/gpt-4.1` | OpenAI | 1M | $2 | $8 | Context largo |
+| `openai/gpt-4.1-mini` | OpenAI | 1M | $0.40 | $1.60 | OpenAI barato |
+| `openai/o4-mini` | OpenAI | 200k | $1.10 | $4.40 | Razonamiento (CoT) |
+| `deepseek/deepseek-chat` | DeepSeek | 64k | $0.27 | $1.10 | Open-weight, muy barato |
+| `deepseek/deepseek-reasoner` | DeepSeek | 64k | $0.55 | $2.19 | Razonamiento open-weight |
+| `moonshot/kimi-k2` | Moonshot | 256k | $0.60 | $2.50 | Chinese model, fuerte en código |
+| `moonshot/moonshot-v1-128k` | Moonshot | 128k | $1.66 | $1.66 | Costo simétrico |
+| `xai/grok-4` | xAI | 256k | $3 | $15 | Acceso a X data |
+| `xai/grok-3` | xAI | 131k | $3 | $15 | Anterior gen |
+| `xai/grok-3-mini` | xAI | 131k | $0.30 | $0.50 | xAI barato |
+
+## Cuándo usar cada uno
+
+### Para tareas críticas con presupuesto
+**Claude Opus 4.8** o **GPT-5**. Top de su clase en razonamiento.
+
+### Para producción a escala
+**Claude Sonnet 4.6**. Balance precio/calidad. Lo elegirías ciegas si no supieras el resto.
+
+### Para alto volumen / costo bajo
+**Gemini 2.5 Flash** o **DeepSeek Chat**. Subdólar por 1M tokens.
+
+### Para razonamiento (chain of thought, paso a paso)
+**DeepSeek Reasoner** o **o4-mini**. Diseñados específicamente para razonamiento estructurado.
+
+### Para context muy largo
+**Gemini 2.5 Pro/Flash** (1M tokens) o **GPT-4.1** (1M). Procesan documentos enteros.
+
+### Para código
+**Kimi K2** o **Claude Sonnet 4.6**. Strong code performance.
+
+## Failover natural
+
+Como todos los modelos comparten el mismo endpoint y SDK, **failover entre providers es trivial**:
+
+```python
+def call_with_fallback(messages):
+    for model in ["anthropic/claude-sonnet-4-6", "openai/gpt-5", "google/gemini-2.5-pro"]:
+        try:
+            return client.chat.completions.create(model=model, messages=messages)
+        except Exception:
+            continue
+    raise RuntimeError("Todos los providers fallaron")
+```

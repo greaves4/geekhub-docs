@@ -1,0 +1,64 @@
+---
+title: "Chat · overview"
+description: "Endpoint principal — 100% compatible con OpenAI"
+---
+
+El endpoint `POST /v1/chat/completions` es **100% compatible con el SDK oficial de OpenAI** para Python y Node.js. Solo cambias `base_url` y `api_key`.
+
+## ¿Qué modelos puedo usar?
+
+17 modelos de chat de 7 proveedores. Todos namespaced como `<provider>/<model>`:
+
+```
+anthropic/claude-opus-4-8
+anthropic/claude-sonnet-4-6
+anthropic/claude-haiku-4-5
+google/gemini-2.5-pro
+google/gemini-2.5-flash
+openai/gpt-5
+openai/gpt-4.1
+openai/gpt-4.1-mini
+openai/o4-mini
+deepseek/deepseek-chat
+deepseek/deepseek-reasoner
+moonshot/kimi-k2
+moonshot/moonshot-v1-128k
+xai/grok-4
+xai/grok-3
+xai/grok-3-mini
+```
+
+Ver [Modelos chat](/models/chat) para context length, precios y capacidades de cada uno.
+
+## Funcionalidades
+
+| Feature | Soportado |
+|---------|-----------|
+| Mensajes `system`, `user`, `assistant` | ✅ |
+| Streaming SSE (`stream: true`) | ✅ |
+| `temperature`, `top_p`, `max_tokens`, `stop` | ✅ |
+| Multi-turn (conversación) | ✅ |
+| Function calling / tool use | _Próximo_ |
+| Vision (image input) | _Próximo_ |
+| JSON mode | _Próximo_ |
+
+## Routing
+
+Detrás de cada model id, llamamos directo al proveedor con su SDK oficial:
+
+| Provider | SDK que usamos |
+|----------|----------------|
+| Anthropic | `@anthropic-ai/sdk` |
+| Google | `@google/genai` |
+| OpenAI | `openai` |
+| DeepSeek | `openai` (OpenAI-compatible) |
+| Moonshot | `openai` (OpenAI-compatible) |
+| xAI | `openai` (OpenAI-compatible) |
+
+Esto significa que los **mismos errores y comportamientos del proveedor original** llegan tal cual a ti. Si OpenAI tiene rate limit, lo verás como `provider_unavailable` con el mensaje original.
+
+## Próximos pasos
+
+<Card title="POST /v1/chat/completions" icon="code" href="/api-reference/chat/completions">
+  Referencia completa del endpoint con todos los parámetros.
+</Card>

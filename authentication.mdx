@@ -1,0 +1,89 @@
+---
+title: "Autenticación"
+description: "Cómo generar, usar y rotar tus API keys"
+---
+
+Geek Hub usa **API keys con prefijo `ghub_sk_`** que se envían en el header `Authorization: Bearer`.
+
+## Formato de las keys
+
+| Tipo | Prefijo | Uso |
+|------|---------|-----|
+| Producción | `ghub_sk_live_` | Llamadas reales, consumen saldo |
+| Sandbox _(próximo)_ | `ghub_sk_test_` | Pruebas sin saldo |
+
+Cada key tiene **45 caracteres** en total. El prefijo `ghub_sk_live_` (13 chars) + 32 chars aleatorios.
+
+## Generar una API key
+
+1. Entra al [dashboard](https://app.geekhub.mx/dashboard/keys)
+2. Click **Nueva API key**
+3. Dale un nombre descriptivo (`prod-web`, `ci-bot`, `staging`)
+4. Te mostramos la key **una sola vez** — guárdala antes de cerrar
+
+<Warning>
+  Si pierdes la key, no podemos recuperarla. Tienes que revocar la actual y generar una nueva.
+</Warning>
+
+## Usar tu API key
+
+Pásala en el header `Authorization`:
+
+```bash
+curl https://api.geekhub.mx/v1/models \
+  -H "Authorization: Bearer ghub_sk_live_xxxxx"
+```
+
+O con los SDKs:
+
+<CodeGroup>
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.geekhub.mx/v1",
+    api_key="ghub_sk_live_xxxxx",  # idealmente desde env var
+)
+```
+
+```javascript Node.js
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.geekhub.mx/v1",
+  apiKey: process.env.GEEKHUB_API_KEY,
+});
+```
+
+</CodeGroup>
+
+## Mejores prácticas
+
+<AccordionGroup>
+  <Accordion title="No hardcodees keys en código" icon="lock">
+    Usa variables de entorno (`process.env.GEEKHUB_API_KEY`) o servicios de secrets (AWS Secrets Manager, Vault, etc).
+  </Accordion>
+
+  <Accordion title="Una key por entorno / app" icon="layer-group">
+    Crea keys separadas para producción, staging, CI, etc. Si una se compromete, revocas solo esa.
+  </Accordion>
+
+  <Accordion title="Revoca keys sin uso" icon="trash">
+    En el dashboard, las keys sin tráfico aparecen marcadas. Revócalas para reducir superficie de ataque.
+  </Accordion>
+
+  <Accordion title="Rota periódicamente" icon="rotate">
+    Cada 90 días: genera nueva, despliega, revoca la vieja.
+  </Accordion>
+</AccordionGroup>
+
+## Errores comunes de autenticación
+
+| Código HTTP | Mensaje | Causa |
+|-------------|---------|-------|
+| `401` | `missing_api_key` | No mandaste header `Authorization` |
+| `401` | `invalid_api_key` | Key no existe o está revocada |
+| `402` | `insufficient_balance` | Tu saldo es ≤ $0 MXN, recarga |
+
+Ver [Errores](/concepts/errors) para el catálogo completo.

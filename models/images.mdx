@@ -1,0 +1,39 @@
+---
+title: "Modelos de imágenes"
+description: "9 modelos de generación de imágenes"
+---
+
+| ID | Provider | Precio/img | Strong suit |
+|----|----------|------------|-------------|
+| `openai/gpt-image-1` | OpenAI | $0.19 | Razonamiento visual, máxima calidad |
+| `openai/dall-e-3` | OpenAI | $0.04 | Versátil, accesible |
+| `google/imagen-4` | Google | $0.04 | Mejor con texto en la imagen |
+| `xai/grok-2-image` | xAI | $0.07 | Estilo fotorrealista, sin filtros |
+| `fal/flux-1.1-pro` | fal.ai | $0.04 | Mejor open-weight balance |
+| `fal/flux-1.1-pro-ultra` | fal.ai | $0.06 | Flux 4K |
+| `fal/recraft-v3` | fal.ai | $0.04 | Branding, tipografía, ilustración |
+| `fal/ideogram-v2` | fal.ai | $0.08 | Tipografía profesional |
+| `fal/sd-3.5-large` | fal.ai | $0.065 | SD 3.5 Large |
+
+## Cuándo usar cada uno
+
+### Para hi-fi / marketing / launch
+**Flux 1.1 Pro Ultra** o **GPT Image 1**. Top de calidad.
+
+### Para volumen / iterar prompts
+**DALL·E 3**, **Imagen 4** o **Flux 1.1 Pro**. $0.04/img, suficientemente bueno.
+
+### Para texto dentro de la imagen
+**Imagen 4** o **Ideogram V2**. Estos manejan tipografía mucho mejor que Flux/DALL·E.
+
+### Para mockups con identidad de marca
+**Recraft V3**. Te deja generar variantes consistentes con un estilo definido.
+
+### Para "estilo libre" / sin filtros estrictos
+**Grok 2 Image**. xAI tiene política de contenido más laxa.
+
+## Storage incluido
+
+Cada imagen generada se persiste en **tu** Supabase Storage automáticamente. Las URLs duran indefinidamente (mientras tengas cuenta).
+
+Path: `https://supabase.geekhub.mx/storage/v1/object/public/generated-images/<org_id>/<request_id>/<i>.<ext>`

@@ -1,0 +1,61 @@
+---
+title: "Saldo"
+description: "Cómo funciona el saldo, descuentos por request y alertas"
+---
+
+Tu **saldo** es un balance en MXN. Lo recargas tú (o lo recibes como bono al registrarte). Cada llamada al gateway descuenta su costo del saldo.
+
+## Cómo se calcula el saldo
+
+```
+Saldo = SUM(amount_mxn) en todas tus credit_transactions
+```
+
+Las transacciones tienen tipos:
+
+| Tipo | Signo | Cuándo |
+|------|-------|--------|
+| `bonus` | `+` | Al registrarte ($50 MXN gratis) |
+| `recharge` | `+` | Cuando completas una recarga Stripe |
+| `consumption` | `-` | Por cada llamada exitosa al gateway |
+| `refund` | `+` | Reembolso manual (próximo) |
+| `adjustment` | `±` | Ajustes manuales del equipo (raros) |
+
+## Visibilidad
+
+- **Tiempo real** en el dashboard ([app.geekhub.mx](https://app.geekhub.mx/dashboard))
+- **Endpoint API** _(próximo Sprint)_: `GET /v1/credits` regresará tu saldo actual
+- **Headers de respuesta** _(próximo Sprint)_: cada response incluirá `x-geekhub-balance-mxn`
+
+## Threshold y alertas
+
+| Saldo | Comportamiento |
+|-------|----------------|
+| `> $20 MXN` | Servicio normal |
+| `> $0 y < $20` | Servicio normal + decision card "Saldo bajo" en dashboard |
+| `≤ $0` | Gateway responde **`402 insufficient_balance`** hasta que recargues |
+
+<Tip>
+  Configura un cron en tu lado que cheque tu saldo (cuando habilitemos `GET /v1/credits`) y dispare alerta cuando esté < 1 día de uso típico.
+</Tip>
+
+## Detalle de cada cobro
+
+En [/dashboard/usage](https://app.geekhub.mx/dashboard/usage) tienes el log completo: cada request muestra:
+
+- Modelo usado
+- Tokens (in / out) o imágenes / segundos
+- Costo MXN exacto
+- Latencia P95
+- Estado (200 / 4xx / 5xx)
+- Timestamp
+
+Y en [/dashboard/billing](https://app.geekhub.mx/dashboard/billing) tienes el detalle por movimiento (recargas, bonos, consumos agregados).
+
+## Race conditions
+
+El descuento del saldo es **atómico a nivel transacción Postgres**: el trigger `consume_credit_on_request()` usa `pg_advisory_xact_lock` por org para serializar consumos concurrentes. Aunque hagas 100 requests paralelos, el `balance_after` siempre refleja el orden correcto.
+
+<Info>
+  **Cero double-charging.** Cada request fallido con `cost_mxn > 0` no genera `consumption` (el trigger lo filtra).
+</Info>

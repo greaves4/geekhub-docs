@@ -1,0 +1,69 @@
+---
+title: "Bienvenido a Geek Hub"
+description: "Una API. Todos los modelos de IA. Factura en MXN con CFDI."
+---
+
+**Geek Hub** es la API gateway de modelos de inteligencia artificial hecha para México y Latinoamérica.
+
+Una sola llave te abre acceso a más de **30 modelos** de los proveedores más relevantes:
+
+<CardGroup cols={3}>
+  <Card title="Chat" icon="message" href="/api-reference/chat/overview">
+    Claude, GPT, Gemini, DeepSeek, Kimi, Grok
+  </Card>
+  <Card title="Imágenes" icon="image" href="/api-reference/images/overview">
+    DALL·E, Imagen, Grok 2 Image, Flux, Recraft, Ideogram
+  </Card>
+  <Card title="Video" icon="video" href="/api-reference/videos/overview">
+    Veo 3.1, Runway Gen-4, Luma, Kling, Hailuo
+  </Card>
+</CardGroup>
+
+## Por qué Geek Hub
+
+<AccordionGroup>
+  <Accordion title="100% compatible con el SDK de OpenAI" icon="code">
+    Cambias `base_url` y `api_key`. Tu código que ya funciona con OpenAI sigue funcionando — ahora con acceso a todos los modelos.
+  </Accordion>
+
+  <Accordion title="Factura en MXN con CFDI 4.0 automático" icon="receipt">
+    Cada recarga genera tu CFDI 4.0 timbrado por SAT al cierre del cobro. Sin trámites, sin intermediarios.
+  </Accordion>
+
+  <Accordion title="Tipo de cambio fijo mensual" icon="dollar-sign">
+    Sin sorpresas de FX al cierre de mes. Sabes exactamente cuánto vas a pagar.
+  </Accordion>
+
+  <Accordion title="Routing inteligente y failover" icon="route">
+    Si un proveedor cae, tus requests siguen corriendo en otro. Tu negocio no se entera.
+  </Accordion>
+
+  <Accordion title="Pago por uso, sin mínimos" icon="circle-dollar">
+    El costo del proveedor + 5% de markup. Eso es todo.
+  </Accordion>
+</AccordionGroup>
+
+## Estructura del API
+
+Todos los endpoints son OpenAI-compatible donde aplica:
+
+```
+POST /v1/chat/completions       Chat con cualquier modelo
+POST /v1/images/generations     Generación de imágenes
+POST /v1/videos/generations     Generación de video (async)
+GET  /v1/videos/{id}            Estado de un job de video
+GET  /v1/models                 Catálogo completo
+GET  /health                    Health check (público)
+```
+
+## Base URL
+
+```
+https://api.geekhub.mx
+```
+
+## Empieza en 5 minutos
+
+<Card title="Quickstart" icon="rocket" href="/quickstart">
+  Crea tu cuenta, genera tu primera API key y haz una llamada en menos de 5 minutos.
+</Card>

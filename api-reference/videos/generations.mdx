@@ -1,0 +1,104 @@
+---
+title: "POST /v1/videos/generations"
+description: "Crea un job de generación de video (async)"
+api: "POST https://api.geekhub.mx/v1/videos/generations"
+---
+
+## Request body
+
+<ParamField body="model" type="string" required>
+  El ID namespaced del modelo, ej. `fal/kling-2`. Ver [Modelos video](/models/videos).
+</ParamField>
+
+<ParamField body="prompt" type="string" required>
+  Descripción del video. Máximo 4000 caracteres.
+</ParamField>
+
+<ParamField body="duration" type="integer">
+  Duración en segundos. Si no la mandas, usamos el default del modelo. Cap por modelo (ver catálogo).
+</ParamField>
+
+<ParamField body="aspect_ratio" type="string">
+  Ratio del video. Ejemplos: `16:9`, `9:16`, `1:1`, `4:5`. Soporte depende del modelo.
+</ParamField>
+
+## Response (inmediata, ~100ms)
+
+```json
+{
+  "id": "e8c96506-72a1-429f-a7ed-4bb0a42541be",
+  "object": "video.job",
+  "status": "processing",
+  "model": "fal/kling-2",
+  "prompt": "un astronauta surfeando una ola gigante de salsa verde",
+  "video_url": null,
+  "duration": 5,
+  "error": null,
+  "created": 1782415166,
+  "completed": null
+}
+```
+
+<ResponseField name="id" type="string">
+  El job_id. Úsalo para polling.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Generalmente `processing`. Raro pero posible `failed` si la submission al provider explotó.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  El model id que pediste.
+</ResponseField>
+
+## Ejemplos
+
+<CodeGroup>
+
+```python Kling 2
+job = client.post("/videos/generations", body={
+    "model": "fal/kling-2",
+    "prompt": "Un astronauta surfeando una ola gigante de salsa verde, cinematográfico",
+    "duration": 5,
+    "aspect_ratio": "16:9",
+})
+print(job["id"])
+```
+
+```python Veo 3.1 con audio
+job = client.post("/videos/generations", body={
+    "model": "google/veo-3.1",
+    "prompt": "Un colibrí bebiendo de una flor de cempasúchil al amanecer, foley naturalista",
+    "duration": 8,
+})
+```
+
+```bash curl
+curl -X POST https://api.geekhub.mx/v1/videos/generations \
+  -H "Authorization: Bearer ghub_sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "fal/kling-2",
+    "prompt": "Un astronauta surfeando una ola gigante de salsa verde",
+    "duration": 5,
+    "aspect_ratio": "16:9"
+  }'
+```
+
+</CodeGroup>
+
+## ⚠️ Sobre el costo
+
+Al crear el job **NO se cobra todavía**. El cobro ocurre cuando el job transita a `completed`. Si falla, no hay cargo.
+
+Cap de seguridad: tu saldo se valida al **submit** — si está ≤ 0 te devolvemos `402 insufficient_balance` antes de crear el job.
+
+<Tip>
+  Antes de mandar muchos jobs en paralelo, calcula tu cost máximo: `duration × precio_modelo × markup × FX`. Por ejemplo 10 videos Kling 5s = `10 × 5 × $0.04 × 1.05 × 20 = $42 MXN`.
+</Tip>
+
+## Siguiente paso
+
+<Card title="GET /v1/videos/{id}" icon="rotate" href="/api-reference/videos/poll">
+  Polea el estado del job hasta que llegue a `completed`.
+</Card>

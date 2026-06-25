@@ -1,0 +1,42 @@
+---
+title: "Imágenes · overview"
+description: "Generación de imágenes con 9 modelos de 4 proveedores"
+---
+
+El endpoint `POST /v1/images/generations` es compatible con la API de OpenAI Images. Cambias el `model` y eliges de nuestro catálogo.
+
+## ¿Qué modelos puedo usar?
+
+| ID | Provider | Precio | Notas |
+|----|----------|--------|-------|
+| `openai/gpt-image-1` | OpenAI | $0.19/img | El más nuevo, alta calidad |
+| `openai/dall-e-3` | OpenAI | $0.04/img | Clásico |
+| `google/imagen-4` | Google | $0.04/img | Excelente con texto |
+| `xai/grok-2-image` | xAI | $0.07/img | Estilo fotorrealista |
+| `fal/flux-1.1-pro` | fal.ai | $0.04/img | El mejor open-weight |
+| `fal/flux-1.1-pro-ultra` | fal.ai | $0.06/img | Flux 4K |
+| `fal/recraft-v3` | fal.ai | $0.04/img | Mejor con tipografía y estilo brand |
+| `fal/ideogram-v2` | fal.ai | $0.08/img | Tipografía profesional |
+| `fal/sd-3.5-large` | fal.ai | $0.065/img | Stable Diffusion 3.5 |
+
+## Storage propio
+
+Cada imagen generada se sube **automáticamente** a tu Supabase Storage (`supabase.geekhub.mx`) en un bucket público con URLs por UUID — efectivamente impossible de adivinar (mismo modelo que Cloudinary o fal.media).
+
+Esto significa que las URLs **no expiran** y puedes referenciar la imagen desde:
+
+- Tu app web (`<img src={url} />`)
+- Slack, email, redes sociales
+- Backup propio descargando los bytes
+
+Si quieres almacenarlas en TU storage en lugar del nuestro, descárgalas inmediatamente con cualquier HTTP client:
+
+```bash
+curl -O https://supabase.geekhub.mx/storage/v1/object/public/generated-images/.../0.png
+```
+
+## Próximos pasos
+
+<Card title="POST /v1/images/generations" icon="code" href="/api-reference/images/generations">
+  Referencia completa del endpoint.
+</Card>

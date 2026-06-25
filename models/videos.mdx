@@ -1,0 +1,64 @@
+---
+title: "Modelos de video"
+description: "7 modelos de generación de video con polling async"
+---
+
+| ID | Provider | Precio/seg | Default | Max | Audio | Aspect ratios |
+|----|----------|------------|---------|-----|-------|---------------|
+| `google/veo-3.1` | Google | $0.40 | 8s | 8s | ✅ | 16:9, 9:16 |
+| `google/veo-3` | Google | $0.20 | 8s | 8s | ❌ | 16:9, 9:16 |
+| `fal/veo-3.1` | fal.ai | $0.40 | 8s | 8s | ✅ | 16:9, 9:16 |
+| `fal/runway-gen-4` | fal.ai | $0.05 | 5s | 10s | ❌ | 16:9, 9:16, 4:3 |
+| `fal/luma-ray-2` | fal.ai | $0.20 | 5s | 9s | ❌ | 16:9, 9:16, 1:1 |
+| `fal/kling-2` | fal.ai | $0.04 | 5s | 10s | ❌ | 16:9, 9:16, 1:1 |
+| `fal/hailuo-02` | fal.ai | $0.04 | 6s | 10s | ❌ | 16:9, 9:16 |
+
+## Costo de ejemplo
+
+Para 5 segundos al FX $20 MXN/USD:
+
+| Modelo | Costo total |
+|--------|-------------|
+| Kling 2 | `5 × $0.04 × 1.05 × 20` = **$4.20 MXN** |
+| Hailuo 02 | `5 × $0.04 × 1.05 × 20` = **$4.20 MXN** |
+| Runway Gen-4 | `5 × $0.05 × 1.05 × 20` = **$5.25 MXN** |
+| Luma Ray 2 | `5 × $0.20 × 1.05 × 20` = **$21.00 MXN** |
+| Veo 3 | `5 × $0.20 × 1.05 × 20` = **$21.00 MXN** |
+| Veo 3.1 (con audio) | `5 × $0.40 × 1.05 × 20` = **$42.00 MXN** |
+
+## Cuándo usar cada uno
+
+### Más barato para iterar
+**Kling 2** o **Hailuo 02**. $0.04/seg, decentes para variar prompts.
+
+### Sweet spot calidad/precio
+**Runway Gen-4 Turbo**. $0.05/seg con calidad sólida y buen prompt-following.
+
+### Para alta calidad cinematográfica
+**Luma Ray 2** o **Veo 3**. $0.20/seg, mejor coherencia temporal.
+
+### Para audio incluido
+Solo **Veo 3.1**. Es el único provider con foley + ambiente generado.
+
+## Patrón de uso
+
+Ver [Video overview](/api-reference/videos/overview) para el flujo completo de submit + polling.
+
+```python
+job = client.post("/videos/generations", body={
+    "model": "fal/kling-2",
+    "prompt": "...",
+    "duration": 5,
+})
+
+# Polea cada 15s hasta completed o failed
+while True:
+    s = client.get(f"/videos/{job['id']}")
+    if s["status"] in ("completed", "failed"):
+        break
+    time.sleep(15)
+```
+
+## Storage incluido
+
+Igual que imágenes: los videos generados se persisten en tu Supabase Storage con URL pública que no expira.

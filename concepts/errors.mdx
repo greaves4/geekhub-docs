@@ -1,0 +1,73 @@
+---
+title: "Errores"
+description: "Catálogo de errores y cómo manejarlos"
+---
+
+Todas las respuestas de error siguen el **formato estándar de OpenAI**:
+
+```json
+{
+  "error": {
+    "message": "Insufficient balance. Recharge at https://app.geekhub.mx/dashboard/billing.",
+    "type": "insufficient_balance",
+    "code": "insufficient_balance",
+    "request_id": "req_aacb6a7d478c2fdea077ca09"
+  }
+}
+```
+
+El `request_id` es trazable de extremo a extremo. Si reportas un bug, inclúyelo — podemos buscar tu request en logs.
+
+## Catálogo de errores
+
+| HTTP | `code` | Qué hacer |
+|------|--------|-----------|
+| `400` | `invalid_request_error` | Revisa el body (Zod te dirá el campo exacto en `message`) |
+| `401` | `missing_api_key` | Manda header `Authorization: Bearer ghub_sk_...` |
+| `401` | `invalid_api_key` | Verifica que la key sea correcta y no esté revocada |
+| `401` | `key_revoked` | Genera una nueva en `/dashboard/keys` |
+| `402` | `insufficient_balance` | Recarga en `/dashboard/billing/recharge` |
+| `404` | `model_not_found` | Llama `GET /v1/models` para ver el catálogo válido |
+| `429` | `rate_limit_exceeded` | Reintenta con exponential backoff (próximo Sprint) |
+| `500` | `internal_error` | Reintenta. Si persiste, abre ticket con `request_id` |
+| `502` | `provider_unavailable` | El proveedor (Anthropic/OpenAI/etc) está caído o tu prompt no es aceptable. Reintenta o cambia modelo |
+
+## Errores específicos del proveedor
+
+Si el `code` es `provider_unavailable`, el `message` viene del proveedor original tal cual. Ejemplos comunes:
+
+```
+404 The model 'gpt-4o' does not exist            ← Tu cuenta no tiene acceso
+content_filter triggered                          ← Anthropic / OpenAI bloquearon el prompt
+rate limit reached for model xxx                 ← Sobrecarga temporal del proveedor
+```
+
+## Retry recomendado
+
+```python
+import time
+from openai import OpenAI
+
+def call_with_retry(client, model, messages, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return client.chat.completions.create(
+                model=model,
+                messages=messages,
+            )
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise
+            # Exponential backoff: 1s, 2s, 4s
+            time.sleep(2 ** attempt)
+```
+
+## Streaming errors
+
+Si pides `stream: true` y algo falla **después** de que arranca el stream, recibes un mensaje SSE final con el shape de error:
+
+```
+data: {"error":{"message":"...","type":"provider_unavailable","code":"provider_unavailable","request_id":"req_xxx"}}
+```
+
+Tu parser debe revisar si la línea contiene `error` además de `[DONE]`.

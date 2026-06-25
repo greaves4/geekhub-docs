@@ -1,0 +1,87 @@
+---
+title: "Video · overview"
+description: "Generación de video asíncrona con polling"
+---
+
+A diferencia de chat e imágenes, **video toma 30s a 5min** dependiendo del modelo. Por eso el flujo es **asíncrono** con dos endpoints:
+
+```
+POST /v1/videos/generations    → Crea job, regresa job_id en ms
+GET  /v1/videos/{job_id}        → Estado actual + URL del video si completed
+```
+
+## Modelos disponibles
+
+| ID | Provider | Precio/seg | Duración default | Max | Audio |
+|----|----------|------------|------------------|-----|-------|
+| `google/veo-3.1` | Google | $0.40 | 8s | 8s | ✅ |
+| `google/veo-3` | Google | $0.20 | 8s | 8s | ❌ |
+| `fal/veo-3.1` | fal.ai | $0.40 | 8s | 8s | ✅ |
+| `fal/runway-gen-4` | fal.ai | $0.05 | 5s | 10s | ❌ |
+| `fal/luma-ray-2` | fal.ai | $0.20 | 5s | 9s | ❌ |
+| `fal/kling-2` | fal.ai | $0.04 | 5s | 10s | ❌ |
+| `fal/hailuo-02` | fal.ai | $0.04 | 6s | 10s | ❌ |
+
+## Patrón de uso
+
+```python
+import time
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.geekhub.mx/v1",
+    api_key="ghub_sk_live_xxx",
+)
+
+# 1. Submit
+job = client.post("/videos/generations", body={
+    "model": "fal/kling-2",
+    "prompt": "Un colibrí bebiendo de una flor de cempasúchil al amanecer",
+    "duration": 5,
+})
+job_id = job["id"]
+print(f"Job created: {job_id}")
+
+# 2. Poll
+while True:
+    status = client.get(f"/videos/{job_id}")
+    if status["status"] == "completed":
+        print(f"Done: {status['video_url']}")
+        break
+    if status["status"] == "failed":
+        print(f"Failed: {status['error']}")
+        break
+    time.sleep(15)  # Cada 15 seg
+```
+
+<Info>
+  El polling es **lazy**: el job no avanza solo (Kling/Veo procesan en su lado). Pero el provider sigue trabajando aunque no polees — cuando polees verás el estado actualizado.
+</Info>
+
+## Estados del job
+
+| Status | Significado |
+|--------|-------------|
+| `pending` | Job creado en nuestra DB, aún no enviado al provider |
+| `processing` | Provider está renderizando |
+| `completed` | Listo. `video_url` apunta a tu Supabase Storage |
+| `failed` | Hubo error. `error` describe la causa |
+
+Solo cuando llega a `completed` cobramos el saldo (al precio del modelo × duración × markup × FX).
+
+Si el job falla, **no se cobra**.
+
+## Storage
+
+Igual que imágenes: los videos terminados se suben a tu Supabase Storage (`generated-videos`) con URLs persistentes y públicas por UUID.
+
+## Próximos pasos
+
+<CardGroup cols={2}>
+  <Card title="POST /v1/videos/generations" icon="upload" href="/api-reference/videos/generations">
+    Submit de un nuevo video job.
+  </Card>
+  <Card title="GET /v1/videos/{id}" icon="rotate" href="/api-reference/videos/poll">
+    Poll del estado del job.
+  </Card>
+</CardGroup>
