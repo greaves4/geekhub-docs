@@ -8,10 +8,11 @@ description: "Cómo cobramos, cómo facturamos, cuánto cuesta cada modelo"
 **Pay-as-you-go**, sin mínimos, sin suscripción. Pagas por lo que consumes.
 
 ```
-Costo final = (precio del proveedor × tokens / 1M) × 1.05 × tipo_de_cambio_MXN
+Costo final = (precio del proveedor × tokens / 1M + fee Stripe) × 1.05 × tipo_de_cambio
 ```
 
-- **+5% de markup** de Geek Hub
+- **Stripe** (2.9% + $0.30, el fijo se reparte en un top-up típico de $50) va **dentro** del costo, no se come el margen
+- **+5% de utilidad bruta** sobre ese costo completo (proveedor + Stripe)
 - **Tipo de cambio fijo mensual** — sin sorpresas de FX
 - **Sin cargos por requests fallidos** (4xx, 5xx no cobran)
 
@@ -21,8 +22,9 @@ Llamada a `anthropic/claude-haiku-4-5` con 100 input tokens + 500 output tokens:
 
 ```
 Provider:  (100 × $1 / 1M) + (500 × $5 / 1M) = $0.0026 USD
-+ 5% markup:                                    $0.00273 USD
-× FX 20 MXN/USD:                                $0.0546 MXN
++ Stripe (carga ~3.5%):                         incluido en el precio de venta
++ 5% utilidad bruta sobre (provider + Stripe)
+× FX 20 MXN/USD
 ```
 
 ## Recargas y saldo
