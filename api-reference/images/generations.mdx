@@ -21,8 +21,7 @@ api: "POST https://api.geekhub.mx/v1/images/generations"
 <ParamField body="size" type="string">
   Tamaño deseado. Lo soportado depende del modelo:
   - OpenAI gpt-image-1: `1024x1024`, `1536x1024`, `1024x1536`
-  - OpenAI dall-e-3: `1024x1024`, `1792x1024`, `1024x1792`
-  - fal/Recraft/Ideogram: `1024x1024`, `1024x768`, `768x1024`, etc.
+  - Google / fal: `1024x1024`, `1024x768`, `768x1024`, etc. (según modelo)
 </ParamField>
 
 <ParamField body="quality" type="string">
@@ -81,9 +80,9 @@ response = client.images.generate(
 )
 ```
 
-```python Imagen 4
+```python Gemini Flash Image
 response = client.images.generate(
-    model="google/imagen-4",
+    model="google/gemini-2.5-flash-image",
     prompt="Un astronauta meditando en una nube de tacos al pastor",
     n=1,
 )
@@ -107,10 +106,8 @@ curl -X POST https://api.geekhub.mx/v1/images/generations \
 
 | Modelo | P50 | P95 |
 |--------|-----|-----|
-| DALL·E 3 | 8s | 20s |
 | GPT Image 1 | 15s | 45s |
-| Imagen 4 | 6s | 18s |
-| Grok 2 Image | 10s | 30s |
+| Gemini Flash Image | 6s | 20s |
 | Flux 1.1 Pro | 7s | 25s |
 | Flux 1.1 Pro Ultra | 12s | 40s |
 | Recraft V3 | 8s | 28s |
@@ -121,10 +118,6 @@ Si tu request tarda > 60s, asume que falló — manda otro.
 
 ## Costos
 
-Cada imagen se cobra al precio del modelo × 1.05 (markup) × FX MXN/USD. Ver [Modelos imágenes](/models/images).
+Cada imagen se cobra con la fórmula de [Facturación](/concepts/billing) (~1.09× el precio del proveedor). Ver [Modelos imágenes](/models/images).
 
-Ejemplo: 1 imagen con Flux 1.1 Pro al FX de $20 MXN/USD:
-
-```
-$0.040 × 1.05 × 20 = $0.84 MXN por imagen
-```
+Ejemplo: 1× Flux 1.1 Pro (`$0.04` proveedor) → sell ≈ **$0.044 USD** (ledger ≈ $0.87 MXN al FX 20).

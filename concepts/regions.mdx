@@ -1,0 +1,28 @@
+---
+title: "Regiones de procesamiento"
+description: "Dónde se procesa el dato por proveedor y marcos legales (GDPR art. 13)"
+---
+
+Por cada modelo del catálogo, el dato se procesa en la región/país del proveedor. Esta página resume el marco para transferencias internacionales (orientación tipo **GDPR art. 13**). La fuente viva de modelos sigue siendo `GET /v1/models`.
+
+## Marcos legales
+
+| Marco | Significado |
+|-------|-------------|
+| **EU/EEA** | El dato no sale de la UE / EEE. Sin base extra de transferencia. |
+| **EU-US DPF** | EU–US Data Privacy Framework (adecuación CE, jul 2023) hacia orgs certificadas en EE.UU. |
+| **SCC** | Cláusulas contractuales estándar (Decisión UE 2021/914). Geek Hub firma SCC con proveedores sin adecuación. |
+
+## ZDR + endpoint europeo
+
+Si activas [ZDR](/concepts/zdr) y eliges un proveedor con endpoint en la UE (p. ej. Google Vertex `europe-west*`, Azure OpenAI Europe), el dato **no sale de la UE** durante el procesamiento y ZDR evita retención en el proveedor. Eso reduce la superficie de transferencia internacional a cero en esa capa.
+
+## Configurar región
+
+Hoy la selección de región UE (p. ej. Vertex) se hace contactando a Geek Hub (routing en el gateway). El selector self-service por API key en Settings está en roadmap.
+
+## Ver también
+
+- [ZDR](/concepts/zdr)
+- [ZDR](/concepts/zdr) — retención cero en el proveedor
+- Aviso de privacidad en [app.geekhub.mx](https://app.geekhub.mx) (transferencias a terceros)

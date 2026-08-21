@@ -69,49 +69,24 @@ curl -X POST https://api.geekhub.mx/v1/chat/completions \
 
 </CodeGroup>
 
-Respuesta:
-
-```json
-{
-  "id": "req_xxx",
-  "object": "chat.completion",
-  "model": "anthropic/claude-haiku-4-5",
-  "choices": [{
-    "index": 0,
-    "message": {"role":"assistant","content":"¡Hola! ¿En qué puedo ayudarte?"},
-    "finish_reason": "stop"
-  }],
-  "usage": {"prompt_tokens": 10, "completion_tokens": 8, "total_tokens": 18}
-}
-```
-
 ## 4 · Cambia de modelo
 
 Solo cambia el campo `model`. **El mismo SDK** funciona con todos:
 
 ```python
-# OpenAI GPT-5
 model="openai/gpt-5"
-
-# Google Gemini Flash
 model="google/gemini-2.5-flash"
-
-# DeepSeek Reasoner
-model="deepseek/deepseek-reasoner"
-
-# Kimi K2
-model="moonshot/kimi-k2"
-
-# Grok 4
-model="xai/grok-4"
+model="deepseek/deepseek-v4-flash"
+model="moonshot/kimi-k2.7-code"
+model="xai/grok-4.3"
 ```
 
-Ver el [catálogo completo](/models) con precios y capacidades.
+Ver el [catálogo](/models). Para modelos fuera del first-party, ver [cobertura extendida](/concepts/openrouter).
 
-## 5 · Cuando se acabe el bono
+## 5 · Cuando se acabe el saldo
 
-Recarga desde [app.geekhub.mx/dashboard/billing](https://app.geekhub.mx/dashboard/billing). Aceptamos tarjeta vía Stripe; al cierre del cobro te llega tu **CFDI 4.0** automático a tu RFC.
+Recarga en USD desde [app.geekhub.mx/dashboard/billing/recharge](https://app.geekhub.mx/dashboard/billing/recharge). Stripe cobra la tarjeta; el crédito entra 1:1 en USD. Si tienes datos fiscales, se emite **CFDI 4.0**.
 
-<Card title="¿Sin RFC?" icon="receipt" href="/concepts/billing">
-  Tu CFDI se emite a Público en General (XAXX010101000). No te bloqueamos para recargar.
+<Card title="Facturación y CFDI" icon="receipt" href="/concepts/billing">
+  Fórmula de precio, FX y cómo se emite el CFDI.
 </Card>

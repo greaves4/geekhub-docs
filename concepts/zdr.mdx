@@ -1,0 +1,63 @@
+---
+title: "Zero Data Retention (ZDR)"
+description: "Garantía de no retención en el proveedor: por request, org o guardrail"
+---
+
+**ZDR** es una garantía contractual del proveedor: request y respuesta no se almacenan (logs, telemetría, cache, fine-tuning). Geek Hub mantiene una lista de endpoints con política **firmada y verificada**, y rechaza requests ZDR dirigidas a modelos fuera de esa lista.
+
+## Tres niveles
+
+### 1. Por request
+
+Pasa `"zdr": true` en el body de `/v1/chat/completions` (también aplica en audio donde el schema lo admite):
+
+```bash
+curl -X POST https://api.geekhub.mx/v1/chat/completions \
+  -H "Authorization: Bearer ghub_sk_live_TU_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "anthropic/claude-sonnet-4-6",
+    "messages": [{"role":"user","content":"Hola"}],
+    "zdr": true
+  }'
+```
+
+### 2. Por cuenta
+
+En [Settings → Zero Data Retention](https://app.geekhub.mx/dashboard/settings) activas ZDR permanente **por grupo** de proveedor (Anthropic, OpenAI, Google, …). Independientes entre sí.
+
+### 3. Por guardrail
+
+Los [guardrails](/concepts/guardrails) permiten forzar ZDR por usuario o por API key dentro de la misma org.
+
+## Rechazo
+
+Si ZDR está activo (cualquier nivel) y el modelo **no** está verificado:
+
+```json
+{
+  "error": {
+    "type": "zdr_not_verified",
+    "message": "El proveedor del modelo \"...\" no ofrece politica ZDR firmada y verificada por Geek Hub.",
+    "model": "...",
+    "verified_alternatives": ["..."]
+  }
+}
+```
+
+HTTP `422`.
+
+En listas de fallback, los candidatos no verificados se **saltan** (`skipped: zdr_not_verified` / `zdr_org_required`) en vez de fallar toda la request — salvo que no quede ninguno válido.
+
+## Qué cubre (y qué no)
+
+ZDR cubre la retención del **proveedor del modelo**. Geek Hub sí guarda metadatos de facturación (model id, tokens, costo, latency) para billing/CFDI — ver aviso de privacidad. El **contenido** de los mensajes no se persiste a nivel gateway.
+
+La allowlist de modelos verificados evoluciona: si `zdr: true` falla, el error incluye `verified_alternatives`.
+
+Útil para estrategias tipo GDPR art. 5(1)(e) (limitación del plazo de conservación) en la capa del modelo.
+
+## Ver también
+
+- [Regiones](/concepts/regions) — combinar ZDR + endpoint UE
+- [Guardrails](/concepts/guardrails)

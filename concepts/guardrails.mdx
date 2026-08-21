@@ -1,0 +1,48 @@
+---
+title: "Guardrails"
+description: "Políticas por usuario o API key: presupuesto, modelos, ZDR, PII"
+---
+
+Un **guardrail** es una política reusable que un owner/admin asigna a un usuario o a una API key. Limita presupuesto, modelos/proveedores, ZDR por grupo, detección de prompt injection y PII, y patrones custom. Se administran en [app.geekhub.mx/dashboard/guardrails](https://app.geekhub.mx/dashboard/guardrails).
+
+## Componentes
+
+| Pieza | Qué controla |
+|-------|----------------|
+| Presupuesto | Tope USD por periodo (diario / semanal / mensual) |
+| Modelos | Lista blanca por model id (vacío = todos) |
+| Providers | Lista blanca (`openai`, `anthropic`, …) |
+| ZDR por grupo | Exigir ZDR para un grupo de proveedores |
+| Prompt injection | On/off — patrones comunes de jailbreak |
+| PII | `off` / `redact` / `block` (email, teléfono, RFC, CURP, tarjetas, IPv4) |
+| Patrones custom | `{ name, pattern, action }` — regex + `redact` o `block` |
+
+## Cómo se combinan
+
+Si aplican varios (user + API key):
+
+| Dimensión | Regla |
+|-----------|-------|
+| Modelos / providers | **Intersección** |
+| ZDR por grupo | **Unión** (si cualquiera exige, se exige) |
+| Presupuesto | Independiente — cualquiera lleno bloquea |
+| PII + custom | Unión; `block` gana sobre `redact` |
+| Prompt injection | OR |
+
+## Bloqueo
+
+```json
+{
+  "error": {
+    "type": "guardrail_blocked",
+    "message": "El modelo \"openai/gpt-5\" no esta en la lista de modelos permitidos por tus guardrails."
+  }
+}
+```
+
+HTTP `403`. El mensaje es de alto nivel: no expone nombres internos de políticas.
+
+## Ver también
+
+- [ZDR](/concepts/zdr)
+- [Fallbacks](/concepts/fallbacks) — candidatos filtrados por guardrail antes del attempt

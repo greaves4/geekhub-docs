@@ -1,0 +1,81 @@
+---
+title: "POST /v1/embeddings"
+description: "Genera embeddings de texto con modelos OpenAI"
+api: "POST https://api.geekhub.mx/v1/embeddings"
+---
+
+## Request body
+
+<ParamField body="model" type="string" required>
+  ID namespaced, ej. `openai/text-embedding-3-small`.
+</ParamField>
+
+<ParamField body="input" type="string | string[]" required>
+  Texto o array de textos (máx. 2048 strings).
+</ParamField>
+
+<ParamField body="dimensions" type="integer">
+  Dimensionalidad del vector (modelos `text-embedding-3-*`). Máx. 3072.
+</ParamField>
+
+<ParamField body="encoding_format" type="'float' | 'base64'">
+  Formato del embedding. Default `float`.
+</ParamField>
+
+<ParamField body="user" type="string">
+  Identificador opcional de usuario final (mismo uso que OpenAI).
+</ParamField>
+
+## Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "object": "embedding",
+      "index": 0,
+      "embedding": [0.002, -0.014, "..."]
+    }
+  ],
+  "model": "openai/text-embedding-3-small",
+  "usage": {
+    "prompt_tokens": 8,
+    "total_tokens": 8
+  }
+}
+```
+
+El costo (sell USD + ledger MXN) se refleja en headers / enrichment de usage según la respuesta del gateway.
+
+## Ejemplo
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.geekhub.mx/v1",
+    api_key="ghub_sk_live_xxx",
+)
+
+res = client.embeddings.create(
+    model="openai/text-embedding-3-small",
+    input="Geek Hub es un gateway de modelos en México",
+)
+
+print(len(res.data[0].embedding))
+```
+
+```bash
+curl -X POST https://api.geekhub.mx/v1/embeddings \
+  -H "Authorization: Bearer ghub_sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "openai/text-embedding-3-small",
+    "input": "Hola mundo"
+  }'
+```
+
+## Costos
+
+Misma fórmula que [Facturación](/concepts/billing). Ver [overview](/api-reference/embeddings/overview). Saldo: `GET /v1/credits` ([Saldo](/concepts/balance)).

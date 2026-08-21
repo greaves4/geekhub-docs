@@ -1,44 +1,45 @@
 ---
 title: "Catálogo de modelos"
-description: "33 modelos en 7 providers · chat, imágenes y video"
+description: "First-party + cobertura extendida · chat, imágenes, video, TTS, embeddings"
 ---
 
-Geek Hub expone **33 modelos** de los providers más relevantes de la industria, todos con la misma API y el mismo método de pago.
+Geek Hub expone un **catálogo first-party** (chat, imágenes, video, TTS, embeddings) con la misma API y el mismo cobro. Si pides un chat id que no está en ese catálogo, aplica [cobertura extendida](/concepts/openrouter).
 
 <CardGroup cols={3}>
   <Card title="Chat" icon="message" href="/models/chat">
-    17 modelos para conversación y razonamiento
+    ~31 modelos first-party (+ long-tail)
   </Card>
   <Card title="Imágenes" icon="image" href="/models/images">
-    9 modelos para generación de imágenes
+    7 modelos
   </Card>
   <Card title="Video" icon="video" href="/models/videos">
-    7 modelos para generación de video
+    11 modelos
   </Card>
 </CardGroup>
 
-## Naming convention
+También:
 
-Todos los modelos siguen el formato `<provider>/<model-slug>`:
+- [`POST /v1/audio/speech`](/api-reference/audio/speech) — TTS
+- [`POST /v1/embeddings`](/api-reference/embeddings/overview) — embeddings
+
+## Naming
+
+Formato `<provider>/<model-slug>`:
 
 - `anthropic/claude-sonnet-4-6`
 - `openai/gpt-5`
-- `google/gemini-2.5-pro`
+- `google/gemini-2.5-flash`
 - `fal/flux-1.1-pro`
-- `xai/grok-4`
+- `xai/grok-4.3`
 
-El namespace deja claro qué proveedor está detrás y te permite cambiar entre alternativas con solo cambiar 1 string.
+## API live
 
-## API live de modelos
-
-Para obtener la lista actualizada al momento, llama:
+Fuente de verdad:
 
 ```bash
 curl https://api.geekhub.mx/v1/models \
   -H "Authorization: Bearer ghub_sk_live_xxx"
 ```
-
-Te devuelve algo como:
 
 ```json
 {
@@ -54,19 +55,20 @@ Te devuelve algo como:
         "input_per_1m_usd": 3,
         "output_per_1m_usd": 15
       }
-    },
-    ...
+    }
   ]
 }
 ```
 
+Las tablas estáticas en estas docs son guía; si hay diferencia, **gana** `GET /v1/models`.
+
 ## Pricing
 
-Los precios listados son **USD del proveedor original**. Para el costo final:
+Los precios listados son **USD del proveedor**. El cobro al cliente:
 
 ```
-costo_final_mxn = precio_provider × (1 + 0.05) × FX_MXN_USD
+sell_usd ≈ provider_usd × 1.09
+         = provider_usd × (1.05 / (1 − 1.05 × carga_stripe))
 ```
 
-- `+5%` markup de Geek Hub
-- `FX_MXN_USD` se fija mensualmente y se anuncia a clientes (sin sorpresas)
+Detalle en [Facturación](/concepts/billing). El ledger convierte a MXN con FX fijo (hoy 20).

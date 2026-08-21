@@ -1,40 +1,44 @@
 ---
-title: "Facturación y CFDI"
-description: "Cómo cobramos, cómo facturamos, cuánto cuesta cada modelo"
+title: "Facturación"
+description: "Precio de venta, recargas en USD y CFDI 4.0"
 ---
 
 ## Modelo de cobro
 
-**Pay-as-you-go**, sin mínimos, sin suscripción. Pagas por lo que consumes.
+**Pay-as-you-go**, sin mínimos ni suscripción. Solo pagas lo que consumes.
+
+El precio de venta (USD) parte del costo del proveedor y mete Stripe **dentro** del costo cargado, para que el margen no se lo coma la pasarela:
 
 ```
-Costo final = (precio del proveedor × tokens / 1M + fee Stripe) × 1.05 × tipo_de_cambio
+carga_stripe = 2.9% + ($0.30 / top-up típico $50)   ≈ 3.5%
+sell_usd     = provider_usd × (1.05 / (1 − 1.05 × carga_stripe))
+             ≈ provider_usd × 1.09
 ```
 
-- **Stripe** (2.9% + $0.30, el fijo se reparte en un top-up típico de $50) va **dentro** del costo, no se come el margen
-- **+5% de utilidad bruta** sobre ese costo completo (proveedor + Stripe)
-- **Tipo de cambio fijo mensual** — sin sorpresas de FX
-- **Sin cargos por requests fallidos** (4xx, 5xx no cobran)
+- **+5% de utilidad bruta** sobre (proveedor + carga Stripe), no solo sobre el proveedor
+- El ledger interno guarda el cobro en **MXN** con FX fijo (hoy **20 MXN/USD**)
+- El dashboard y `GET /v1/credits` te muestran el saldo en **USD** (equivalente)
+- **Sin cargo** en 4xx / 5xx
 
-### Ejemplo
+### Ejemplo (chat)
 
-Llamada a `anthropic/claude-haiku-4-5` con 100 input tokens + 500 output tokens:
+`anthropic/claude-haiku-4-5` · 100 input + 500 output:
 
 ```
 Provider:  (100 × $1 / 1M) + (500 × $5 / 1M) = $0.0026 USD
-+ Stripe (carga ~3.5%):                         incluido en el precio de venta
-+ 5% utilidad bruta sobre (provider + Stripe)
-× FX 20 MXN/USD
+Sell ≈ $0.0026 × 1.09 ≈ $0.0028 USD  (≈ $0.057 MXN al FX 20)
 ```
+
+Los precios en [Modelos](/models) son **USD del proveedor**. El gateway aplica la fórmula de arriba al cobrar.
 
 ## Recargas y saldo
 
-Cargas saldo en MXN desde el [dashboard](https://app.geekhub.mx/dashboard/billing/recharge). Acepta:
+Recargas en **USD** (1:1 de crédito) desde [Facturación → Recargar](https://app.geekhub.mx/dashboard/billing/recharge):
 
-- Tarjeta de crédito/débito (vía Stripe)
-- _Próximo:_ OXXO, transferencia SPEI, PayPal
+- Tarjeta (Stripe)
+- _Próximo:_ OXXO, SPEI, PayPal
 
-Cada llamada exitosa **descuenta su costo en MXN del saldo** atómicamente. Cuando llega a $0:
+Cada llamada exitosa descuenta el costo del saldo de forma atómica. Con saldo ≤ 0:
 
 ```json
 HTTP 402 Payment Required
@@ -48,58 +52,31 @@ HTTP 402 Payment Required
 }
 ```
 
-## CFDI 4.0 automático
+## CFDI 4.0
 
-Cada recarga genera tu **CFDI 4.0 timbrado por SAT** en cuanto Stripe confirma el cobro (~5 seg).
+Cada recarga genera un **CFDI 4.0** timbrado por el SAT cuando Stripe confirma el cobro. Configura RFC / razón social / régimen en [Ajustes → Fiscal](https://app.geekhub.mx/dashboard/settings).
 
-### Si das de alta tus datos fiscales
+Sin datos fiscales, el CFDI sale a **Público en General** (`XAXX010101000`, Uso `S01`). Las recargas ya emitidas no se re-timbran; las siguientes usan tus datos nuevos.
 
-El CFDI sale a tu **RFC** con razón social, régimen y uso CFDI configurados en [Ajustes](https://app.geekhub.mx/dashboard/settings).
-
-| Dato | Cómo lo usamos |
-|------|----------------|
-| RFC | Receptor del CFDI |
-| Razón social (en MAYÚSCULAS) | Receptor.Nombre |
-| Código postal | Domicilio fiscal del receptor |
-| Régimen fiscal | RegimenFiscalReceptor (601, 612, 626, etc) |
-| Uso CFDI | UsoCfdi (G03, S01, I04, etc) |
-| Email facturación | Dirección donde llega el XML+PDF |
-
-### Si no das de alta tus datos fiscales
-
-El CFDI se emite a **Público en General** (RFC `XAXX010101000`, Uso `S01`).
-
-<Info>
-  Esto es 100% válido legalmente — es como te factura OXXO, Uber o Rappi cuando no pides ticket fiscal. Si después quieres CFDI a tu RFC, las **siguientes** recargas ya saldrán correctas (las pasadas no se pueden modificar).
-</Info>
-
-### Descarga de tus CFDIs
-
-En [Facturación → Facturas (CFDI 4.0)](https://app.geekhub.mx/dashboard/billing) tienes:
-
-- **Folio** (interno, secuencial por org)
-- **UUID SAT** (el folio fiscal oficial)
-- **Total MXN** (subtotal + IVA 16%)
-- **Estado** (Timbrada / Cancelada / Error)
-- **Descargar XML** — link directo al XML timbrado
+En [Facturación](https://app.geekhub.mx/dashboard/billing) puedes ver folio, UUID SAT, estado y descargar XML / recibo. El monto fiscal del CFDI va en MXN (subtotal + IVA según el cobro Stripe).
 
 ## Catálogo de precios
 
-Ver [Modelos](/models) para precios completos por modelo. Resumen aproximado:
+Ver [Modelos](/models). Resumen orientativo (USD **proveedor**; el sell es ~1.09×):
 
 | Familia | Input $/1M | Output $/1M |
 |---------|------------|-------------|
-| Claude Haiku | $1.05 | $5.25 |
-| Claude Sonnet | $3.15 | $15.75 |
-| Claude Opus | $15.75 | $78.75 |
-| GPT-5 | $1.31 | $10.50 |
-| Gemini 2.5 Flash | $0.16 | $0.63 |
-| DeepSeek | $0.28 | $1.15 |
-| Kimi K2 | $0.63 | $2.62 |
-| Grok 3 mini | $0.32 | $0.52 |
+| Claude Haiku 4.5 | $1 | $5 |
+| Claude Sonnet 4.6 | $3 | $15 |
+| Claude Opus 4.8 | $15 | $75 |
+| GPT-5 / 5.1 | $1.25 | $10 |
+| Gemini 2.5 Flash | $0.30 | $2.50 |
+| DeepSeek V4 Flash | $0.14 | $0.28 |
+| Kimi K2.7 Code | $0.95 | $4 |
+| Grok 4.3 | $1.25 | $2.50 |
 
-_Precios en USD ya con el +5% de markup. Multiplica por tu FX para MXN._
+Fuente de verdad: `GET /v1/models`.
 
 <Card title="Imágenes y video" icon="image" href="/api-reference/images/overview">
-  Las imágenes se cobran por unidad ($0.04 – $0.19 USD); el video, por segundo ($0.04 – $0.40 USD).
+  Imágenes por unidad; video por segundo. Misma fórmula de sell + FX.
 </Card>

@@ -7,7 +7,7 @@ api: "POST https://api.geekhub.mx/v1/videos/generations"
 ## Request body
 
 <ParamField body="model" type="string" required>
-  El ID namespaced del modelo, ej. `fal/kling-2`. Ver [Modelos video](/models/videos).
+  El ID namespaced del modelo, ej. `fal/hailuo-02`. Ver [Modelos video](/models/videos).
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -29,7 +29,7 @@ api: "POST https://api.geekhub.mx/v1/videos/generations"
   "id": "e8c96506-72a1-429f-a7ed-4bb0a42541be",
   "object": "video.job",
   "status": "processing",
-  "model": "fal/kling-2",
+  "model": "fal/hailuo-02",
   "prompt": "un astronauta surfeando una ola gigante de salsa verde",
   "video_url": null,
   "duration": 5,
@@ -55,9 +55,9 @@ api: "POST https://api.geekhub.mx/v1/videos/generations"
 
 <CodeGroup>
 
-```python Kling 2
+```python Hailuo 02
 job = client.post("/videos/generations", body={
-    "model": "fal/kling-2",
+    "model": "fal/hailuo-02",
     "prompt": "Un astronauta surfeando una ola gigante de salsa verde, cinematográfico",
     "duration": 5,
     "aspect_ratio": "16:9",
@@ -78,7 +78,7 @@ curl -X POST https://api.geekhub.mx/v1/videos/generations \
   -H "Authorization: Bearer ghub_sk_live_xxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "fal/kling-2",
+    "model": "fal/hailuo-02",
     "prompt": "Un astronauta surfeando una ola gigante de salsa verde",
     "duration": 5,
     "aspect_ratio": "16:9"
@@ -94,7 +94,7 @@ Al crear el job **NO se cobra todavía**. El cobro ocurre cuando el job transita
 Cap de seguridad: tu saldo se valida al **submit** — si está ≤ 0 te devolvemos `402 insufficient_balance` antes de crear el job.
 
 <Tip>
-  Antes de mandar muchos jobs en paralelo, calcula tu cost máximo: `duration × precio_modelo × markup × FX`. Por ejemplo 10 videos Kling 5s = `10 × 5 × $0.04 × 1.05 × 20 = $42 MXN`.
+  Antes de mandar muchos jobs en paralelo, calcula el techo: `duration × $/seg_proveedor × ~1.09`. Ejemplo: 10× Hailuo 5s ≈ `10 × 5 × $0.04 × 1.09 ≈ $2.18 USD`.
 </Tip>
 
 ## Siguiente paso

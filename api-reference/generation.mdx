@@ -1,0 +1,67 @@
+---
+title: "GET /v1/generation"
+description: "Audit de un request por id — costo, modelo, latencia (OR-compat)"
+api: "GET https://api.geekhub.mx/v1/generation"
+---
+
+Endpoint de auditoría compatible con OpenRouter. Devuelve los datos logueados del request identificado por `id` (tu `request_id`, formato `req_…`). Solo visible para la org dueña del request.
+
+## Query
+
+<ParamField query="id" type="string" required>
+  ID del request, ej. `req_aacb6a7d478c2fdea077ca09`.
+</ParamField>
+
+## Ejemplo
+
+```bash
+curl "https://api.geekhub.mx/v1/generation?id=req_xxx" \
+  -H "Authorization: Bearer ghub_sk_live_TU_KEY"
+```
+
+## Response (resumen)
+
+```json
+{
+  "data": {
+    "id": "req_xxx",
+    "model": "anthropic/claude-sonnet-4-6",
+    "origin": "anthropic",
+    "provider_name": "anthropic",
+    "total_cost": 0.0123,
+    "usage": 0.0123,
+    "tokens_prompt": 120,
+    "tokens_completion": 45,
+    "latency": 840,
+    "created_at": "2026-08-10T22:00:00.000Z",
+    "is_byok": false
+  },
+  "geekhub": {
+    "status_code": 200,
+    "output_kind": "chat",
+    "cost_usd_charged": 0.0123,
+    "cost_usd_provider": 0.0117,
+    "cost_mxn": 0.246,
+    "margin_usd": 0.0006
+  }
+}
+```
+
+`data` sigue la forma OR-compat (`is_byok` está siempre en `false` con las keys del dashboard). `geekhub` añade status, kind de output y desglose USD/MXN.
+
+## Cuándo usarlo
+
+- Disputar un cargo o verificar que un fallback cambió de modelo
+- Debug de output vacío / latencia alta
+- Integraciones tipo Langfuse / Helicone que leen metadata post-hoc
+
+<Info>
+  El **saldo** de la org no vive aquí: usa [`GET /v1/credits`](/concepts/balance).
+</Info>
+
+## Errores
+
+| Caso | Resultado |
+|------|-----------|
+| Sin `id` | `400 invalid_request_error` |
+| ID inexistente o de otra org | `404` (no filtra existencia a terceros) |

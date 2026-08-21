@@ -1,0 +1,87 @@
+---
+title: "POST /v1/audio/speech"
+description: "Text-to-speech OpenAI-compatible — audio binario"
+api: "POST https://api.geekhub.mx/v1/audio/speech"
+---
+
+Sintetiza voz a partir de texto. La respuesta es **audio binario** (no JSON); `Content-Type` según `response_format`.
+
+## Request body
+
+<ParamField body="model" type="string" required>
+  Modelo TTS, ej. `openai/tts-1`, `openai/tts-1-hd`, `openai/gpt-4o-mini-tts`.
+</ParamField>
+
+<ParamField body="input" type="string" required>
+  Texto a sintetizar. Máx. 4096 caracteres.
+</ParamField>
+
+<ParamField body="voice" type="string" default="alloy">
+  Voz del modelo. Comunes: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer` (+ `verse` en gpt-4o-mini-tts).
+</ParamField>
+
+<ParamField body="response_format" type="string" default="mp3">
+  `mp3` | `opus` | `wav` | `pcm` | `aac` | `flac`.
+</ParamField>
+
+<ParamField body="speed" type="number">
+  Entre 0.25 y 4.0.
+</ParamField>
+
+<ParamField body="instructions" type="string">
+  Solo `openai/gpt-4o-mini-tts`: prompt de tono / emoción / ritmo.
+</ParamField>
+
+<ParamField body="stream" type="boolean" default="false">
+  Si `true`, stream de chunks de audio para reproducción en tiempo real.
+</ParamField>
+
+<ParamField body="zdr" type="boolean">
+  Pre-flight ZDR. Ver [ZDR](/concepts/zdr).
+</ParamField>
+
+## Formatos
+
+| `response_format` | Content-Type |
+|-------------------|--------------|
+| `mp3` | `audio/mpeg` |
+| `opus` | `audio/opus` |
+| `wav` | `audio/wav` |
+| `pcm` | `audio/L16` |
+| `aac` | `audio/aac` |
+| `flac` | `audio/flac` |
+
+## Ejemplo
+
+```bash
+curl -X POST https://api.geekhub.mx/v1/audio/speech \
+  -H "Authorization: Bearer ghub_sk_live_TU_KEY" \
+  -H "Content-Type: application/json" \
+  -o speech.mp3 \
+  -d '{
+    "model": "openai/tts-1",
+    "input": "Hola, soy una prueba de síntesis de voz.",
+    "voice": "alloy",
+    "response_format": "mp3"
+  }'
+```
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.geekhub.mx/v1",
+    api_key="ghub_sk_live_xxx",
+)
+
+with client.audio.speech.with_streaming_response.create(
+    model="openai/tts-1",
+    voice="nova",
+    input="Bienvenido a Geek Hub.",
+) as response:
+    response.stream_to_file("speech.mp3")
+```
+
+## Costos
+
+Cobro por **caracteres** del `input` (no por segundos de audio), con la fórmula de [Facturación](/concepts/billing) (~1.09× proveedor). Headers `x-geekhub-request-cost-*` en respuesta no-stream.

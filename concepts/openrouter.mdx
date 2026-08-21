@@ -1,0 +1,27 @@
+---
+title: "Cobertura extendida (long-tail)"
+description: "Modelos fuera del catálogo first-party se sirven con la marca del maker."
+---
+
+Geek Hub prioriza **endpoints first-party** (OpenAI, Anthropic, Google, Meta, Mistral, etc.).
+
+Si pides un modelo de chat que **no** está en ese catálogo, el gateway lo resuelve igual: mismo `model` id estilo `maker/slug`, mismos precios con la fórmula de [Facturación](/concepts/billing), y en la respuesta verás `owned_by` / `geekhub.provider` = **la marca del maker** (p.ej. `qwen`, `anthropic`, `meta`) — nunca un intermediario.
+
+## Ejemplo
+
+```bash
+curl https://api.geekhub.mx/v1/chat/completions \
+  -H "Authorization: Bearer $GEEKHUB_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen/qwen3-32b",
+    "messages": [{"role":"user","content":"hola"}]
+  }'
+```
+
+`GET /v1/models` mezcla el catálogo local + cobertura extendida (sin duplicar ids locales).
+
+## Notas
+
+- Los modelos core del catálogo local **siempre** van directo al maker.
+- ZDR verificado solo aplica a la allowlist first-party; long-tail cae en grupo `otros`.

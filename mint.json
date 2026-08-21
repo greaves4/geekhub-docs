@@ -60,7 +60,12 @@
       "pages": [
         "concepts/billing",
         "concepts/balance",
-        "concepts/errors"
+        "concepts/errors",
+        "concepts/fallbacks",
+        "concepts/guardrails",
+        "concepts/zdr",
+        "concepts/regions",
+        "concepts/openrouter"
       ]
     },
     {
@@ -83,6 +88,25 @@
         "api-reference/videos/overview",
         "api-reference/videos/generations",
         "api-reference/videos/poll"
+      ]
+    },
+    {
+      "group": "Audio",
+      "pages": [
+        "api-reference/audio/speech"
+      ]
+    },
+    {
+      "group": "Embeddings",
+      "pages": [
+        "api-reference/embeddings/overview",
+        "api-reference/embeddings/embeddings"
+      ]
+    },
+    {
+      "group": "Audit",
+      "pages": [
+        "api-reference/generation"
       ]
     },
     {

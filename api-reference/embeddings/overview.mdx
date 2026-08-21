@@ -1,0 +1,25 @@
+---
+title: "Embeddings · overview"
+description: "Vectores OpenAI-compatible vía POST /v1/embeddings"
+---
+
+`POST /v1/embeddings` es compatible con la API de embeddings de OpenAI. Misma forma de body/response; cambias `base_url` y `api_key`.
+
+## Modelos
+
+| ID | Dims | Precio proveedor / 1M tokens |
+|----|------|------------------------------|
+| `openai/text-embedding-3-small` | 1536 | $0.02 |
+| `openai/text-embedding-3-large` | 3072 | $0.13 |
+
+Opcional: `dimensions` para truncar el vector (modelos `*-3-*`). Cobro por **tokens de input**; el output es el vector.
+
+## Casos de uso
+
+Retrieval (RAG), clustering, clasificación, búsqueda semántica. El vector store (persistir + buscar) es una capa aparte — este endpoint solo genera embeddings.
+
+## Próximos pasos
+
+<Card title="POST /v1/embeddings" icon="code" href="/api-reference/embeddings/embeddings">
+  Referencia del endpoint con parámetros y ejemplos.
+</Card>

@@ -1,0 +1,79 @@
+---
+title: "Fallbacks y auto-routing"
+description: "Lista de modelos, model:auto y routing.strategy/candidates"
+---
+
+En lugar de un solo modelo, puedes pasar una **lista ordenada** de candidatos. Si el primero falla por causa del proveedor, Geek Hub reintenta con el siguiente sin devolver error al cliente. La respuesta indica qué modelo respondió y el cobro va contra ese, no contra el primero de la lista.
+
+## `model` como array
+
+`model` acepta string (un modelo) o array de 1–8 IDs (máximo 8).
+
+```bash
+curl -X POST https://api.geekhub.mx/v1/chat/completions \
+  -H "Authorization: Bearer ghub_sk_live_TU_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": [
+      "openai/gpt-5",
+      "anthropic/claude-sonnet-4-6",
+      "google/gemini-2.5-flash"
+    ],
+    "messages": [{"role":"user","content":"Hola"}]
+  }'
+```
+
+## `model: "auto"` + `routing`
+
+Con `"model": "auto"` el gateway ordena `routing.candidates` según `routing.strategy` y luego aplica la misma lógica de fallback:
+
+| `strategy` | Criterio |
+|------------|----------|
+| `cheapest` | Menor costo estimado (default) |
+| `fastest` | Menor p50 de latencia reciente; si no hay historial suficiente, cae a `cheapest` |
+| `balanced` | Combina costo (~60%) y latencia (~40%) |
+
+```json
+{
+  "model": "auto",
+  "routing": {
+    "strategy": "cheapest",
+    "candidates": [
+      "anthropic/claude-haiku-4-5",
+      "google/gemini-2.5-flash",
+      "openai/gpt-4.1-mini"
+    ]
+  },
+  "messages": [{"role": "user", "content": "Resume en una línea"}]
+}
+```
+
+## Cuándo se activa el fallback
+
+Solo en errores del **proveedor** (429, 5xx, timeout, red, contexto excedido, content policy). **No** reintenta en errores tuyos: 400 malformado, 401/403 auth, 402 sin saldo, modelo inexistente.
+
+Si un candidato no soporta una capability pedida (`zdr: true`, structured outputs) o lo bloquea un guardrail, se **salta** (aparece en `skipped`) en vez de abortar toda la lista.
+
+## Respuesta
+
+Cuando hubo lista o auto-routing, la respuesta incluye `geekhub`:
+
+```json
+{
+  "model": "anthropic/claude-sonnet-4-6",
+  "geekhub": {
+    "final_model": "anthropic/claude-sonnet-4-6",
+    "requested": ["openai/gpt-5", "anthropic/claude-sonnet-4-6"],
+    "attempts": [{ "model": "openai/gpt-5", "error": "rate_limit" }],
+    "skipped": []
+  }
+}
+```
+
+Si fallan todos → `502` con `type: "all_candidates_failed"`.
+
+## Streaming y costos
+
+Con `stream: true` el fallback solo aplica **antes del primer chunk**. Después, un fallo mid-stream se propaga como error SSE.
+
+El cobro es del modelo que **respondió** (`geekhub.final_model`). Intentos fallidos no generan cargo de tokens; sí quedan en usage para auditoría.

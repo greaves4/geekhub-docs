@@ -1,39 +1,31 @@
 ---
 title: "Modelos de imágenes"
-description: "9 modelos de generación de imágenes"
+description: "7 modelos · precio USD por imagen (proveedor)"
 ---
+
+Precios = **USD del proveedor por imagen**. Cobro al cliente ≈ ×1.09 — [Facturación](/concepts/billing).
 
 | ID | Provider | Precio/img | Strong suit |
 |----|----------|------------|-------------|
-| `openai/gpt-image-1` | OpenAI | $0.19 | Razonamiento visual, máxima calidad |
-| `openai/dall-e-3` | OpenAI | $0.04 | Versátil, accesible |
-| `google/imagen-4` | Google | $0.04 | Mejor con texto en la imagen |
-| `xai/grok-2-image` | xAI | $0.07 | Estilo fotorrealista, sin filtros |
-| `fal/flux-1.1-pro` | fal.ai | $0.04 | Mejor open-weight balance |
+| `openai/gpt-image-1` | OpenAI | $0.19 | Calidad alta / legacy GPT Image |
+| `google/gemini-2.5-flash-image` | Google | $0.039 | Rápido, buen texto en imagen |
+| `fal/flux-1.1-pro` | fal.ai | $0.04 | Balance open-weight |
 | `fal/flux-1.1-pro-ultra` | fal.ai | $0.06 | Flux 4K |
-| `fal/recraft-v3` | fal.ai | $0.04 | Branding, tipografía, ilustración |
+| `fal/recraft-v3` | fal.ai | $0.04 | Branding, tipografía |
 | `fal/ideogram-v2` | fal.ai | $0.08 | Tipografía profesional |
 | `fal/sd-3.5-large` | fal.ai | $0.065 | SD 3.5 Large |
 
-## Cuándo usar cada uno
+## Cuándo usar
 
-### Para hi-fi / marketing / launch
-**Flux 1.1 Pro Ultra** o **GPT Image 1**. Top de calidad.
+- **Volumen / iterar:** Gemini Flash Image, Flux 1.1 Pro (~$0.04)
+- **Hi-fi:** Flux Ultra o GPT Image 1
+- **Texto en la imagen:** Ideogram V2 o Gemini Flash Image
+- **Marca / estilo fijo:** Recraft V3
 
-### Para volumen / iterar prompts
-**DALL·E 3**, **Imagen 4** o **Flux 1.1 Pro**. $0.04/img, suficientemente bueno.
+## Storage
 
-### Para texto dentro de la imagen
-**Imagen 4** o **Ideogram V2**. Estos manejan tipografía mucho mejor que Flux/DALL·E.
+Las imágenes se persisten en el storage de tu org. URLs estables mientras la cuenta exista.
 
-### Para mockups con identidad de marca
-**Recraft V3**. Te deja generar variantes consistentes con un estilo definido.
+## Ejemplo de costo
 
-### Para "estilo libre" / sin filtros estrictos
-**Grok 2 Image**. xAI tiene política de contenido más laxa.
-
-## Storage incluido
-
-Cada imagen generada se persiste en **tu** Supabase Storage automáticamente. Las URLs duran indefinidamente (mientras tengas cuenta).
-
-Path: `https://supabase.geekhub.mx/storage/v1/object/public/generated-images/<org_id>/<request_id>/<i>.<ext>`
+1× Flux 1.1 Pro: `provider $0.04 → sell ≈ $0.044 USD` (≈ $0.87 MXN al FX 20).
