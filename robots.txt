@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /mintlify-assets/
+Disallow: /_next/
+Disallow: /cdn-cgi/
+Disallow: /*.md
+Disallow: /*.mdx
+
+Sitemap: https://docs.geekhub.mx/sitemap.xml
